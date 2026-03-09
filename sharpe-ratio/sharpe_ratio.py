@@ -41,26 +41,28 @@ def read_csvs_batters():
         dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
 
     dfs_sharpe['Total_sharpe'] = dfs_sharpe['HR_sharpe'] + dfs_sharpe['R_sharpe'] + dfs_sharpe['RBI_sharpe'] + dfs_sharpe['SB_sharpe'] + dfs_sharpe['OBP_sharpe']
+    dfs_sharpe = dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False)
+    dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
     pd.set_option('display.max_rows', None)
 
-    print('Top Players By Risk Adjusted Home Runs')
-    print(dfs_sharpe.sort_values(by = 'HR_sharpe', ascending = False).head(10))
+    #print('Top Players By Risk Adjusted Home Runs')
+    #print(dfs_sharpe.sort_values(by = 'HR_sharpe', ascending = False).head(10))
     
-    print('Top Players By Risk Adjusted Runs')
-    print(dfs_sharpe.sort_values(by = 'R_sharpe', ascending = False).head(10))
+    #print('Top Players By Risk Adjusted Runs')
+    #print(dfs_sharpe.sort_values(by = 'R_sharpe', ascending = False).head(10))
     
-    print('Top Players By Risk Adjusted RBIs')
-    print(dfs_sharpe.sort_values(by = 'RBI_sharpe', ascending = False).head(10))
+    #print('Top Players By Risk Adjusted RBIs')
+    #print(dfs_sharpe.sort_values(by = 'RBI_sharpe', ascending = False).head(10))
     
-    print('Top Players By Risk Adjusted Stolen Bases')
-    print(dfs_sharpe.sort_values(by = 'SB_sharpe', ascending = False).head(10))
+    #print('Top Players By Risk Adjusted Stolen Bases')
+    #print(dfs_sharpe.sort_values(by = 'SB_sharpe', ascending = False).head(10))
     
-    print('Top Players By Risk Adjusted OBP')
-    print(dfs_sharpe.sort_values(by = 'OBP_sharpe', ascending = False).head(10))
+    #print('Top Players By Risk Adjusted OBP')
+    #print(dfs_sharpe.sort_values(by = 'OBP_sharpe', ascending = False).head(10))
 
-    print('Top Risk Adjusted Players')
-    print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
+    #print('Top Risk Adjusted Players')
+    #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
 
     #print(dfs_sharpe[dfs_sharpe['Name'] == 'Aaron Judge'])
 
@@ -106,23 +108,25 @@ def read_csvs_pitchers(starters = True):
 
 
         dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + dfs_sharpe['SO_sharpe'] - dfs_sharpe['WHIP_sharpe'] - dfs_sharpe['ERA_sharpe']
+        dfs_sharpe = dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False)
+        dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
         pd.set_option('display.max_rows', None)
 
-        print('Top Players By Risk Adjusted Wins')
-        print(dfs_sharpe.sort_values(by = 'W_sharpe', ascending = False).head(10))
+        #print('Top Players By Risk Adjusted Wins')
+        #print(dfs_sharpe.sort_values(by = 'W_sharpe', ascending = False).head(10))
         
-        print('Top Players By Risk Adjusted Strikeouts')
-        print(dfs_sharpe.sort_values(by = 'SO_sharpe', ascending = False).head(10))
+        #print('Top Players By Risk Adjusted Strikeouts')
+        #print(dfs_sharpe.sort_values(by = 'SO_sharpe', ascending = False).head(10))
         
-        print('Top Players By Risk Adjusted WHIP')
-        print(dfs_sharpe.sort_values(by = 'WHIP_sharpe', ascending = True).head(10))
+        #print('Top Players By Risk Adjusted WHIP')
+        #print(dfs_sharpe.sort_values(by = 'WHIP_sharpe', ascending = True).head(10))
         
-        print('Top Players By Risk Adjusted ERA')
-        print(dfs_sharpe.sort_values(by = 'ERA_sharpe', ascending = True).head(10))
+        #print('Top Players By Risk Adjusted ERA')
+        #print(dfs_sharpe.sort_values(by = 'ERA_sharpe', ascending = True).head(10))
 
-        print('Top Risk Adjusted Players')
-        print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
+        #print('Top Risk Adjusted Players')
+        #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
 
         return dfs_sharpe
     else:
@@ -155,31 +159,34 @@ def read_csvs_pitchers(starters = True):
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
 
         dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + 5 * dfs_sharpe['SVHLD_sharpe'] + dfs_sharpe['SO_sharpe'] - dfs_sharpe['WHIP_sharpe'] - dfs_sharpe['ERA_sharpe']
+        dfs_sharpe = dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False)
+        dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
+
 
         pd.set_option('display.max_rows', None)
 
-        print('Top Players By Risk Adjusted Wins')
-        print(dfs_sharpe.sort_values(by = 'W_sharpe', ascending = False).head(10))
+        #print('Top Players By Risk Adjusted Wins')
+        #print(dfs_sharpe.sort_values(by = 'W_sharpe', ascending = False).head(10))
         
-        print('Top Players By Risk Adjusted SVHLD')
-        print(dfs_sharpe.sort_values(by = 'SVHLD_sharpe', ascending = False).head(10))
+        #print('Top Players By Risk Adjusted SVHLD')
+        #print(dfs_sharpe.sort_values(by = 'SVHLD_sharpe', ascending = False).head(10))
         
-        print('Top Players By Risk Adjusted Strikeouts')
-        print(dfs_sharpe.sort_values(by = 'SO_sharpe', ascending = False).head(10))
+        #print('Top Players By Risk Adjusted Strikeouts')
+        #print(dfs_sharpe.sort_values(by = 'SO_sharpe', ascending = False).head(10))
         
-        print('Top Players By Risk Adjusted WHIP')
-        print(dfs_sharpe.sort_values(by = 'WHIP_sharpe', ascending = True).head(10))
+        #print('Top Players By Risk Adjusted WHIP')
+        #print(dfs_sharpe.sort_values(by = 'WHIP_sharpe', ascending = True).head(10))
         
-        print('Top Players By Risk Adjusted ERA')
-        print(dfs_sharpe.sort_values(by = 'ERA_sharpe', ascending = True).head(10))
+        #print('Top Players By Risk Adjusted ERA')
+        #print(dfs_sharpe.sort_values(by = 'ERA_sharpe', ascending = True).head(10))
 
-        print('Top Risk Adjusted Players')
-        print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
+        #print('Top Risk Adjusted Players')
+        #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
 
         return dfs_sharpe
 
 
 if __name__ == '__main__':
-    read_csvs_batters()
+    print(read_csvs_batters()['Name'].values[:10])
     read_csvs_pitchers()
     read_csvs_pitchers(starters = False)
