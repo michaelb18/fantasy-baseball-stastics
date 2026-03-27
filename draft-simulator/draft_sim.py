@@ -44,16 +44,50 @@ class BatterProjections:
     rbi: Gaussian
     runs: Gaussian
     sb: Gaussian
-    obp: Gaussian
+    h: Gaussian
+    bb: Gaussian
+    ab: Gaussian
+    
+    @property
+    def obp(self) -> float:
+        h_samples = self.h.sample(n = 1000)
+        bb_samples = self.bb.sample(n = 1000)
+        ab_samples = self.ab.sample(n = 1000)
+        batter_obp = (h_samples + bb_samples)/ab_samples
+        batter_obp = Gaussian(mean=np.mean(batter_obp), std=np.std(batter_obp))
+
+        return batter_obp
+
 
 
 @dataclass
 class PitcherProjections:
     k: Gaussian
-    era: Gaussian
     wins: Gaussian
-    whip: Gaussian
     svhld: Gaussian
+    ip: Gaussian
+    bb: Gaussian
+    er: Gaussian
+    h: Gaussian
+
+    @property
+    def whip(self) -> float:
+        h_samples = self.h.sample(n = 1000)
+        bb_samples = self.bb.sample(n = 1000)
+        ip_samples = self.ip.sample(n = 1000)
+        pitcher_whip = (h_samples + bb_samples)/ip_samples
+        pitcher_whip = Gaussian(mean=np.mean(pitcher_whip), std=np.std(pitcher_whip))
+
+        return pitcher_whip
+
+    @property
+    def era(self) -> float:
+        er_samples = self.er.sample(n = 1000)
+        ip_samples = self.ip.sample(n = 1000)
+        pitcher_era = (er_samples)/ip_samples * 9
+        pitcher_era = Gaussian(mean=np.mean(pitcher_era), std=np.std(pitcher_era))
+
+        return pitcher_era
 
 
 @dataclass
@@ -143,13 +177,34 @@ class Team:
         batting_rbi = Gaussian.sum([b.projections.rbi for b in self.batters if b.projections])
         batting_runs = Gaussian.sum([b.projections.runs for b in self.batters if b.projections])
         batting_sb = Gaussian.sum([b.projections.sb for b in self.batters if b.projections])
-        batting_obp = Gaussian.sum([b.projections.obp for b in self.batters if b.projections])
+        batting_h = Gaussian.sum([b.projections.h for b in self.batters if b.projections])
+        batting_bb = Gaussian.sum([b.projections.bb for b in self.batters if b.projections])
+        batting_ab = Gaussian.sum([b.projections.ab for b in self.batters if b.projections])
+
+        h_samples = batting_h.sample(n = 1000)
+        bb_samples = batting_bb.sample(n = 1000)
+        ab_samples = batting_ab.sample(n = 1000)
+        batting_obp = (h_samples + bb_samples)/ab_samples
+        batting_obp = Gaussian(mean=np.mean(batting_obp), std=np.std(batting_obp))
 
         pitching_k = Gaussian.sum([p.projections.k for p in self.pitchers if p.projections])
         pitching_wins = Gaussian.sum([p.projections.wins for p in self.pitchers if p.projections])
-        pitching_whip = Gaussian.sum([p.projections.whip for p in self.pitchers if p.projections])
-        pitching_era = Gaussian.sum([p.projections.era for p in self.pitchers if p.projections])
+        pitching_er = Gaussian.sum([p.projections.er for p in self.pitchers if p.projections])
+        pitching_ip = Gaussian.sum([p.projections.ip for p in self.pitchers if p.projections])
+        pitching_bb = Gaussian.sum([p.projections.bb for p in self.pitchers if p.projections])
+        pitching_h = Gaussian.sum([p.projections.h for p in self.pitchers if p.projections])
         pitching_svhld = Gaussian.sum([p.projections.svhld for p in self.pitchers if p.projections])
+
+        p_h_samples = pitching_h.sample(n = 1000)
+        p_bb_samples = pitching_bb.sample(n = 1000)
+        p_ip_samples = pitching_ip.sample(n = 1000)
+        p_er_samples = pitching_er.sample(n = 1000)
+
+        pitching_whip = (p_h_samples + p_bb_samples)/p_ip_samples
+        pitching_era = 9 * p_er_samples/p_ip_samples
+
+        pitching_whip = Gaussian(mean=np.mean(pitching_whip), std=np.std(pitching_whip))
+        pitching_era = Gaussian(mean=np.mean(pitching_era), std=np.std(pitching_era))
 
         return TeamProjection(
             hr=batting_hr,
@@ -200,7 +255,9 @@ def build_batter_universe(
     fallback_r_std = _fallback_std("R")
     fallback_rbi_std = _fallback_std("RBI")
     fallback_sb_std = _fallback_std("SB")
-    fallback_obp_std = _fallback_std("OBP")
+    fallback_h_std = _fallback_std("H")
+    fallback_bb_std = _fallback_std("BB")
+    fallback_ab_std = _fallback_std("AB")
 
     # Map each player to an MLB team using a single projection set (e.g. Steamer).
     team_df = pd.read_csv("../projections/hitters/steamer.csv", delimiter="\t")
@@ -214,7 +271,7 @@ def build_batter_universe(
     for _, row in dfs_sharpe.iterrows():
         name = str(row["Name"].values[0])
         team = str(team_by_player.get(name, ""))
-
+        print(row)
         hr_mean = float(row[("HR", "mean")])
         hr_std = float(row[("HR", "std")])
         r_mean = float(row[("R", "mean")])
@@ -223,15 +280,21 @@ def build_batter_universe(
         rbi_std = float(row[("RBI", "std")])
         sb_mean = float(row[("SB", "mean")])
         sb_std = float(row[("SB", "std")])
-        obp_mean = float(row[("OBP", "mean")])
-        obp_std = float(row[("OBP", "std")])
+        h_mean = float(row[("H", "mean")])
+        h_std = float(row[("H", "std")])
+        bb_mean = float(row[("BB", "mean")])
+        bb_std = float(row[("BB", "std")])
+        ab_mean = float(row[("AB", "mean")])
+        ab_std = float(row[("AB", "std")])
 
         projections = BatterProjections(
             hr=_safe_gaussian(hr_mean, hr_std, fallback_hr_std),
             rbi=_safe_gaussian(rbi_mean, rbi_std, fallback_rbi_std),
             runs=_safe_gaussian(r_mean, r_std, fallback_r_std),
             sb=_safe_gaussian(sb_mean, sb_std, fallback_sb_std),
-            obp=_safe_gaussian(obp_mean, obp_std, fallback_obp_std),
+            h=_safe_gaussian(h_mean, h_std, fallback_h_std),
+            bb=_safe_gaussian(bb_mean, bb_std, fallback_bb_std),
+            ab=_safe_gaussian(ab_mean, ab_std, fallback_ab_std),
         )
         batter = Batter(
             name=name,
@@ -311,13 +374,23 @@ def build_pitcher_universe(
         whip_std = float(row[("WHIP", "std")])
         era_mean = float(row[("ERA", "mean")])
         era_std = float(row[("ERA", "std")])
+        ip_mean = float(row[("IP", "mean")])
+        ip_std = float(row[("IP", "std")])
+        h_mean = float(row[("H", "mean")])
+        h_std = float(row[("H", "std")])
+        bb_mean = float(row[("BB", "mean")])
+        bb_std = float(row[("BB", "std")])
+        er_mean = float(row[("BB", "mean")])
+        er_std = float(row[("BB", "std")])
 
         projections = PitcherProjections(
             k=_safe_gaussian(k_mean, k_std, fallback_k_std),
-            era=_safe_gaussian(era_mean, era_std, fallback_era_std),
             wins=_safe_gaussian(w_mean, w_std, fallback_w_std),
-            whip=_safe_gaussian(whip_mean, whip_std, fallback_whip_std),
             svhld=_safe_gaussian(svhld_mean, svhld_std, fallback_svhld_std),
+            ip=_safe_gaussian(ip_mean, ip_std, _fallback_std("IP")),
+            bb=_safe_gaussian(bb_mean, bb_std, _fallback_std("BB")),
+            er=_safe_gaussian(er_mean, er_std, _fallback_std("ER")),
+            h=_safe_gaussian(h_mean, h_std, _fallback_std("H")),
         )
 
         pitcher = Pitcher(

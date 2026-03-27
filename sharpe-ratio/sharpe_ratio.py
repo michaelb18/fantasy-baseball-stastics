@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import time
 
-def read_csvs_batters():
+def read_csvs_batters(include_h = True):
     paths = [
             '../projections/hitters/atc.csv',
             '../projections/hitters/bat.csv',
@@ -16,7 +16,7 @@ def read_csvs_batters():
 
     dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
 
-    dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
+    dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP", "H", "AB", "BB"] if include_h else ["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
     adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
     dfs_sharpe_roster = dfs_sharpe[adps != 999]
     dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -46,29 +46,9 @@ def read_csvs_batters():
 
     pd.set_option('display.max_rows', None)
 
-    #print('Top Players By Risk Adjusted Home Runs')
-    #print(dfs_sharpe.sort_values(by = 'HR_sharpe', ascending = False).head(10))
-    
-    #print('Top Players By Risk Adjusted Runs')
-    #print(dfs_sharpe.sort_values(by = 'R_sharpe', ascending = False).head(10))
-    
-    #print('Top Players By Risk Adjusted RBIs')
-    #print(dfs_sharpe.sort_values(by = 'RBI_sharpe', ascending = False).head(10))
-    
-    #print('Top Players By Risk Adjusted Stolen Bases')
-    #print(dfs_sharpe.sort_values(by = 'SB_sharpe', ascending = False).head(10))
-    
-    #print('Top Players By Risk Adjusted OBP')
-    #print(dfs_sharpe.sort_values(by = 'OBP_sharpe', ascending = False).head(10))
-
-    #print('Top Risk Adjusted Players')
-    #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
-
-    #print(dfs_sharpe[dfs_sharpe['Name'] == 'Aaron Judge'])
-
     return dfs_sharpe
 
-def read_csvs_pitchers(starters = True):
+def read_csvs_pitchers(starters = True, include_expanded_stats = True):
     paths = [
             '../projections/pitchers/atc.csv',
             '../projections/pitchers/bat.csv',
@@ -84,7 +64,7 @@ def read_csvs_pitchers(starters = True):
         dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
         dfs = dfs[dfs['GS'] > 5]
 
-        dfs_sharpe = dfs[["Name", "W", "SO", "WHIP", "ERA"]].groupby("Name").agg(['mean', 'std']).reset_index()
+        dfs_sharpe = dfs[["Name", "W", "SO", "WHIP", "ERA", 'ER', 'BB', 'H', 'IP'] if include_expanded_stats else ["Name", "W", "SO", "WHIP", "ERA"]].groupby("Name").agg(['mean', 'std']).reset_index()
         adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
         dfs_sharpe_roster = dfs_sharpe[adps != 999]
         dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -134,7 +114,7 @@ def read_csvs_pitchers(starters = True):
         dfs = dfs[dfs['G'] - dfs['GS'] > 5]
         dfs["SVHLD"] = dfs['SV'] + dfs['HLD']
 
-        dfs_sharpe = dfs[["Name", "W", "SO", "SVHLD", "WHIP", "ERA"]].groupby("Name").agg(['mean', 'std']).reset_index()
+        dfs_sharpe = dfs[["Name", "W", "SO", "SVHLD", "WHIP", "ERA", 'ER', 'BB', 'H', 'IP'] if include_expanded_stats else ["Name", "W", "SO", "SVHLD", "WHIP", "ERA"]].groupby("Name").agg(['mean', 'std']).reset_index()
         adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
         dfs_sharpe_roster = dfs_sharpe[adps != 999]
         dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -187,6 +167,6 @@ def read_csvs_pitchers(starters = True):
 
 
 if __name__ == '__main__':
-    print(read_csvs_batters()['Name'].values[:10])
-    read_csvs_pitchers()
-    read_csvs_pitchers(starters = False)
+    #read_csvs_pitchers().to_csv("./starters_sharpe.csv")
+    print(read_csvs_batters(include_h = False))
+    #print(read_csvs_pitchers(starters = False))#.to_csv("./relievers_sharpe.csv"))
