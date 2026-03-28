@@ -84,7 +84,7 @@ class PitcherProjections:
     def era(self) -> float:
         er_samples = self.er.sample(n = 1000)
         ip_samples = self.ip.sample(n = 1000)
-        pitcher_era = (er_samples)/ip_samples * 9
+        pitcher_era = er_samples/ip_samples * 9
         pitcher_era = Gaussian(mean=np.mean(pitcher_era), std=np.std(pitcher_era))
 
         return pitcher_era
@@ -260,7 +260,7 @@ def build_batter_universe(
     fallback_ab_std = _fallback_std("PA")
 
     # Map each player to an MLB team using a single projection set (e.g. Steamer).
-    team_df = pd.read_csv("../projections/hitters/steamer.csv", delimiter="\t")
+    team_df = pd.read_csv("projections/hitters/steamer.csv", delimiter="\t")
     team_by_player = dict(zip(team_df["Name"], team_df["Team"]))
 
     salary_by_player = salary_by_player or {}
@@ -338,7 +338,7 @@ def build_pitcher_universe(
     fallback_era_std = _fallback_std("ERA")
 
     # Map each player to an MLB team using a single projection set (e.g. Steamer).
-    team_df = pd.read_csv("../projections/pitchers/steamer.csv", delimiter="\t")
+    team_df = pd.read_csv("projections/pitchers/steamer.csv", delimiter="\t")
     team_by_player = dict(zip(team_df["Name"], team_df["Team"]))
 
     salary_by_player = salary_by_player or {}
@@ -380,8 +380,8 @@ def build_pitcher_universe(
         h_std = float(row[("H", "std")])
         bb_mean = float(row[("BB", "mean")])
         bb_std = float(row[("BB", "std")])
-        er_mean = float(row[("BB", "mean")])
-        er_std = float(row[("BB", "std")])
+        er_mean = float(row[("ER", "mean")])
+        er_std = float(row[("ER", "std")])
 
         projections = PitcherProjections(
             k=_safe_gaussian(k_mean, k_std, fallback_k_std),
