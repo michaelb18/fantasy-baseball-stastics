@@ -257,7 +257,7 @@ def build_batter_universe(
     fallback_sb_std = _fallback_std("SB")
     fallback_h_std = _fallback_std("H")
     fallback_bb_std = _fallback_std("BB")
-    fallback_ab_std = _fallback_std("AB")
+    fallback_ab_std = _fallback_std("PA")
 
     # Map each player to an MLB team using a single projection set (e.g. Steamer).
     team_df = pd.read_csv("../projections/hitters/steamer.csv", delimiter="\t")
@@ -284,8 +284,8 @@ def build_batter_universe(
         h_std = float(row[("H", "std")])
         bb_mean = float(row[("BB", "mean")])
         bb_std = float(row[("BB", "std")])
-        ab_mean = float(row[("AB", "mean")])
-        ab_std = float(row[("AB", "std")])
+        ab_mean = float(row[("PA", "mean")])
+        ab_std = float(row[("PA", "std")])
 
         projections = BatterProjections(
             hr=_safe_gaussian(hr_mean, hr_std, fallback_hr_std),

@@ -16,7 +16,7 @@ def read_csvs_batters(include_h = True):
 
     dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
 
-    dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP", "H", "AB", "BB"] if include_h else ["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
+    dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP", "H", "PA", "BB"] if include_h else ["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
     adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
     dfs_sharpe_roster = dfs_sharpe[adps != 999]
     dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -81,13 +81,19 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
                                  "ERA": replacement_level_player_era
                              }
         
-        for category in ['W', 'SO', 'WHIP', 'ERA']:
+        for category in ['W', 'SO']:
             dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_player[category])/(dfs_sharpe[category]['std'])
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
 
+        for category in ['WHIP', 'ERA']:
+            dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_player[category])/(dfs_sharpe[category]['std'])
+            dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
+            dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
+            dfs_sharpe[f'{category}_sharpe'] *= -1
 
-        dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + dfs_sharpe['SO_sharpe'] - dfs_sharpe['WHIP_sharpe'] - dfs_sharpe['ERA_sharpe']
+
+        dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + dfs_sharpe['SO_sharpe'] + dfs_sharpe['WHIP_sharpe'] + dfs_sharpe['ERA_sharpe']
         dfs_sharpe = dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False)
         dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
@@ -138,7 +144,10 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
 
-        dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + 5 * dfs_sharpe['SVHLD_sharpe'] + dfs_sharpe['SO_sharpe'] - dfs_sharpe['WHIP_sharpe'] - dfs_sharpe['ERA_sharpe']
+        dfs_sharpe['WHIP_sharpe'] *= -1
+        dfs_sharpe['ERA_sharpe'] *= -1
+
+        dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + 5 * dfs_sharpe['SVHLD_sharpe'] + dfs_sharpe['SO_sharpe'] + dfs_sharpe['WHIP_sharpe'] + dfs_sharpe['ERA_sharpe']
         dfs_sharpe = dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False)
         dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
@@ -167,6 +176,6 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
 
 
 if __name__ == '__main__':
-    #read_csvs_pitchers().to_csv("./starters_sharpe.csv")
-    print(read_csvs_batters(include_h = False))
-    #print(read_csvs_pitchers(starters = False))#.to_csv("./relievers_sharpe.csv"))
+    read_csvs_batters(include_h = False).to_csv("./batters_sharpe.csv")
+    read_csvs_pitchers(starters = False).to_csv("./relievers_sharpe.csv")
+    read_csvs_pitchers().to_csv("./relievers_sharpe.csv")

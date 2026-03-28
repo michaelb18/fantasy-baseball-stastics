@@ -237,9 +237,15 @@ def _projection_value(proj: TeamProjection, category: str, scenario: str) -> flo
     """Get scalar value for one category: 'best' (mean+3*std), 'mean', or 'worst' (mean-3*std)."""
     g = getattr(proj, category)
     if scenario == "best":
-        return g.mean + 3 * g.std
+        if category.lower() in LOWER_IS_BETTER:
+            return g.mean - 3 * g.std
+        else:
+            return g.mean + 3 * g.std
     if scenario == "worst":
-        return g.mean - 3 * g.std
+        if category.lower() in LOWER_IS_BETTER:
+            return g.mean + 3 * g.std
+        else:
+            return g.mean - 3 * g.std
     return g.mean
 
 
