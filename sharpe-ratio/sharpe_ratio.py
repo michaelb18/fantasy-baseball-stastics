@@ -4,14 +4,14 @@ import time
 
 def read_csvs_batters(include_h = True):
     paths = [
-            '../projections/hitters/atc.csv',
-            '../projections/hitters/bat.csv',
-            '../projections/hitters/bat_x.csv',
-            '../projections/hitters/depth_charts.csv',
-            '../projections/hitters/oopsy.csv',
-            '../projections/hitters/steamer.csv',
-            '../projections/hitters/zips.csv',
-            '../projections/hitters/zips_dc.csv'
+            'projections/hitters/atc.csv',
+            'projections/hitters/bat.csv',
+            'projections/hitters/bat_x.csv',
+            'projections/hitters/depth_charts.csv',
+            'projections/hitters/oopsy.csv',
+            'projections/hitters/steamer.csv',
+            'projections/hitters/zips.csv',
+            'projections/hitters/zips_dc.csv'
             ]
 
     dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
