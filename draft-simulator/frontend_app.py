@@ -248,7 +248,7 @@ def _projection_value(proj: TeamProjection, category: str, scenario: str) -> flo
             return g.mean - 3 * g.std
     elif scenario == "sharpe":
         return g.mean / g.std
-    elif scenario = "mean":
+    elif scenario == "mean":
         return g.mean
     raise ValueError("Scenario must be one of {'best', 'worst', 'mean', 'sharpe'}")
 
@@ -345,7 +345,6 @@ def _team_projection_table(proj: TeamProjection) -> pd.DataFrame:
         ("Best case (μ+3σ)", "best"),
         ("Mean (μ)", "mean"),
         ("Worst case (μ−3σ)", "worst"),
-        ("Sharpe (Risk Adjusted)", "sharpe")
     ]
     categories_display = [
         ("HR", "hr"),
@@ -410,6 +409,7 @@ def main() -> None:
             ("Best case (μ+3σ)", "best"),
             ("Average case (μ)", "mean"),
             ("Worst case (μ−3σ)", "worst"),
+            ("Sharpe (Risk Adjusted)", "sharpe")
         ]:
             st.subheader(scenario_label)
             df = _compute_rankings(teams, scenario_key)
