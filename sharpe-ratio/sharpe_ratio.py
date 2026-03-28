@@ -50,14 +50,14 @@ def read_csvs_batters(include_h = True):
 
 def read_csvs_pitchers(starters = True, include_expanded_stats = True):
     paths = [
-            '../projections/pitchers/atc.csv',
-            '../projections/pitchers/bat.csv',
-            '../projections/pitchers/bat_x.csv',
-            '../projections/pitchers/depth_charts.csv',
-            '../projections/pitchers/oopsy.csv',
-            '../projections/pitchers/steamer.csv',
-            '../projections/pitchers/zips.csv',
-            '../projections/pitchers/zips_dc.csv'
+            'projections/pitchers/atc.csv',
+            'projections/pitchers/bat.csv',
+            'projections/pitchers/bat_x.csv',
+            'projections/pitchers/depth_charts.csv',
+            'projections/pitchers/oopsy.csv',
+            'projections/pitchers/steamer.csv',
+            'projections/pitchers/zips.csv',
+            'projections/pitchers/zips_dc.csv'
             ]
 
     if starters:
