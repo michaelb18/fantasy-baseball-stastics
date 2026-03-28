@@ -241,12 +241,16 @@ def _projection_value(proj: TeamProjection, category: str, scenario: str) -> flo
             return g.mean - 3 * g.std
         else:
             return g.mean + 3 * g.std
-    if scenario == "worst":
+    elif scenario == "worst":
         if category.lower() in LOWER_IS_BETTER:
             return g.mean + 3 * g.std
         else:
             return g.mean - 3 * g.std
-    return g.mean
+    elif scenario == "sharpe":
+        return g.mean / g.std
+    elif scenario = "mean":
+        return g.mean
+    raise ValueError("Scenario must be one of {'best', 'worst', 'mean', 'sharpe'}")
 
 
 def _compute_rankings(
@@ -341,6 +345,7 @@ def _team_projection_table(proj: TeamProjection) -> pd.DataFrame:
         ("Best case (μ+3σ)", "best"),
         ("Mean (μ)", "mean"),
         ("Worst case (μ−3σ)", "worst"),
+        ("Sharpe (Risk Adjusted)", "sharpe")
     ]
     categories_display = [
         ("HR", "hr"),
@@ -382,6 +387,20 @@ def main() -> None:
 
     if page_choice == "Home":
         # Home page: best, average, and worst case rankings with points
+        st.header("Dollars per player remaining")
+        st.markdown(
+            "This ranks teams by **salary remaining ÷ remaining roster spots**. "
+            "Example: if you have 10 total players left to draft and $160 left, your $/player is 16. "
+            "This is **not** a scoring category and does not affect the stat-category points tables."
+        )
+        st.dataframe(
+            _compute_dollars_per_player_rankings(teams),
+            use_container_width=True,
+            height=400,
+        )
+
+        st.markdown("---")
+
         st.header("League rankings by projected points")
         st.markdown(
             "Teams are ranked in each of 10 categories (HR, RBI, R, SB, OBP, K, W, SV+HLD, WHIP, ERA). "
@@ -396,18 +415,6 @@ def main() -> None:
             df = _compute_rankings(teams, scenario_key)
             st.dataframe(df, use_container_width=True, height=400)
 
-        st.markdown("---")
-        st.header("Dollars per player remaining")
-        st.markdown(
-            "This ranks teams by **salary remaining ÷ remaining roster spots**. "
-            "Example: if you have 10 total players left to draft and $160 left, your $/player is 16. "
-            "This is **not** a scoring category and does not affect the stat-category points tables."
-        )
-        st.dataframe(
-            _compute_dollars_per_player_rankings(teams),
-            use_container_width=True,
-            height=400,
-        )
     else:
         # Team page: selected team roster + projection scenarios + draft form
         selected_team_name = page_choice
