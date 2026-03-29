@@ -1,4 +1,5 @@
 import pandas as pd
+from unidecode import unidecode
 import numpy as np
 import time
 
@@ -15,7 +16,7 @@ def read_csvs_batters(include_h = True):
             ]
 
     dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
-
+    
     dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP", "H", "PA", "BB"] if include_h else ["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
     adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
     dfs_sharpe_roster = dfs_sharpe[adps != 999]
@@ -45,7 +46,7 @@ def read_csvs_batters(include_h = True):
     dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
     pd.set_option('display.max_rows', None)
-
+    dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
     return dfs_sharpe
 
 def read_csvs_pitchers(starters = True, include_expanded_stats = True):
@@ -114,6 +115,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         #print('Top Risk Adjusted Players')
         #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
 
+        dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
         return dfs_sharpe
     else:
         dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
@@ -172,6 +174,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         #print('Top Risk Adjusted Players')
         #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
 
+        dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
         return dfs_sharpe
 
 
