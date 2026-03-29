@@ -300,7 +300,6 @@ def build_batter_universe(
             bb=_safe_gaussian(bb_mean, bb_std, fallback_bb_std),
             ab=_safe_gaussian(ab_mean, ab_std, fallback_ab_std),
         )
-        print(name, positions[positions['Name'] == name]['POS'].values)
         batter = Batter(
             name=name,
             team=team,

@@ -47,14 +47,15 @@ def read_csvs_batters(include_h = True):
         dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_level_player[category])/(dfs_sharpe[category]['std'])
         dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
         dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
+        dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std']
+        dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std']
 
     dfs_sharpe['Total_sharpe'] = dfs_sharpe['HR_sharpe'] + dfs_sharpe['R_sharpe'] + dfs_sharpe['RBI_sharpe'] + dfs_sharpe['SB_sharpe'] + dfs_sharpe['OBP_sharpe']
     dfs_sharpe = dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False)
     dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
-    pd.set_option('display.max_rows', None)
     dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-    return dfs_sharpe
+    return dfs_sharpe[:400]
 
 def read_csvs_pitchers(starters = True, include_expanded_stats = True):
     paths = [
@@ -93,12 +94,16 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
             dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_player[category])/(dfs_sharpe[category]['std'])
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
+            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std']
+            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std']
 
         for category in ['WHIP', 'ERA']:
             dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_player[category])/(dfs_sharpe[category]['std'])
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] *= -1
+            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std']
+            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std']
 
 
         dfs_sharpe['Total_sharpe'] = dfs_sharpe['W_sharpe'] + dfs_sharpe['SO_sharpe'] + dfs_sharpe['WHIP_sharpe'] + dfs_sharpe['ERA_sharpe']
@@ -108,7 +113,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-        return dfs_sharpe
+        return dfs_sharpe[:400]
     else:
         dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
         dfs = dfs[dfs['G'] - dfs['GS'] > 5]
@@ -138,6 +143,9 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
 
+            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std'] * int(category in ['WHIP', 'ERA'])
+            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std'] * int(category in ['WHIP', 'ERA'])
+
         dfs_sharpe['WHIP_sharpe'] *= -1
         dfs_sharpe['ERA_sharpe'] *= -1
 
@@ -149,10 +157,44 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-        return dfs_sharpe
+        return dfs_sharpe[:400]
 
+def add_positions(df):
+    position_path = 'projections/fangraphs-auction-calculator.csv'
+    positions = pd.read_csv(position_path)
+
+    positions['Name'] = positions['Name'].apply(str.split).apply(" ".join)
+    pos_list = []
+    salaries = []
+    for name in df['Name']:
+        this_players_positions = positions[positions['Name'] == name]['POS'].values
+        pos_list.append(this_players_positions[0] if len(this_players_positions) > 0 else "")
+        this_players_salary = positions[positions['Name'] == name]['Dollars'].values
+        salaries.append(max(this_players_salary[0], 1.0) if len(this_players_salary) > 0 else 0)
+    df["POS"] = pos_list
+    df["Salary"] = salaries
+
+    return df
+
+def remove_taken(df, team_ini_path = 'draft-simulator/teams.ini'):
+    with open(team_ini_path, 'r') as f:
+        file_content = f.read()
+
+    df_filtered = df[~df['Name'].apply(lambda x: str(x) in file_content if pd.notnull(x) else False)]
+
+    return df_filtered
+
+def get_position(df, position):
+    df_w_pos = add_positions(df)
+    return df_w_pos[df_w_pos['POS'].str.contains(position, na=False)]
 
 if __name__ == '__main__':
-    read_csvs_batters(include_h = False).to_csv("./batters_sharpe.csv")
-    read_csvs_pitchers(starters = False).to_csv("./relievers_sharpe.csv")
-    read_csvs_pitchers().to_csv("./starters_sharpe.csv")
+
+    pd.set_option('display.max_rows', None)
+    df = read_csvs_batters(include_h = False)
+    df = remove_taken(df)
+    for position in ['C', '1B', '2B', '3B', 'OF', 'SS']:
+        get_position(df, position)[:240].to_csv(f'{position}.csv')
+    df[:240].to_csv('U.csv')
+    read_csvs_pitchers(starters = False)[:144].to_csv("./relievers_sharpe.csv")
+    read_csvs_pitchers()[:144].to_csv("./starters_sharpe.csv")

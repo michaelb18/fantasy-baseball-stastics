@@ -145,7 +145,6 @@ def draft_player_to_team(player_name: str, salary: float, team_name: str) -> str
 
     template_player = None
     is_batter = False
-
     if player_name in batters_by_name:
         template_player = batters_by_name[player_name]
         is_batter = True
