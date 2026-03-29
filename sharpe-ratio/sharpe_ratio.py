@@ -55,7 +55,7 @@ def read_csvs_batters(include_h = True):
     dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
     dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-    return dfs_sharpe[:400]
+    return dfs_sharpe#[:400]
 
 def read_csvs_pitchers(starters = True, include_expanded_stats = True):
     paths = [
@@ -94,8 +94,10 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
             dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_player[category])/(dfs_sharpe[category]['std'])
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
-            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std']
-            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std']
+            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std'] * int(-1 if category in ['WHIP', 'ERA'] else 1)
+
+            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std'] * int(-1 if category in ['WHIP', 'ERA'] else 1)
+
 
         for category in ['WHIP', 'ERA']:
             dfs_sharpe[f'{category}_sharpe'] = (dfs_sharpe[category]['mean'] - replacement_player[category])/(dfs_sharpe[category]['std'])
@@ -113,7 +115,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-        return dfs_sharpe[:400]
+        return dfs_sharpe#[:400]
     else:
         dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
         dfs = dfs[dfs['G'] - dfs['GS'] > 5]
@@ -143,8 +145,8 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
             dfs_sharpe[f'{category}_sharpe'].fillna(dfs_sharpe[category]['mean'])
             dfs_sharpe[f'{category}_sharpe'] = dfs_sharpe[f'{category}_sharpe'].mask(np.isinf(dfs_sharpe[f'{category}_sharpe']), dfs_sharpe[category]['mean'])
 
-            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std'] * int(category in ['WHIP', 'ERA'])
-            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std'] * int(category in ['WHIP', 'ERA'])
+            dfs_sharpe[(category, 'low')] = dfs_sharpe[category]['mean'] - 3 * dfs_sharpe[category]['std'] * int(-1 if category in ['WHIP', 'ERA'] else 1)
+            dfs_sharpe[(category, 'high')] = dfs_sharpe[category]['mean'] + 3 * dfs_sharpe[category]['std'] * int(-1 if category in ['WHIP', 'ERA'] else 1)
 
         dfs_sharpe['WHIP_sharpe'] *= -1
         dfs_sharpe['ERA_sharpe'] *= -1
@@ -157,7 +159,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-        return dfs_sharpe[:400]
+        return dfs_sharpe#[:400]
 
 def add_positions(df):
     position_path = 'projections/fangraphs-auction-calculator.csv'
@@ -192,9 +194,10 @@ if __name__ == '__main__':
 
     pd.set_option('display.max_rows', None)
     df = read_csvs_batters(include_h = False)
+    df.to_csv("all_players.csv")
     df = remove_taken(df)
     for position in ['C', '1B', '2B', '3B', 'OF', 'SS']:
-        get_position(df, position)[:240].to_csv(f'{position}.csv')
-    df[:240].to_csv('U.csv')
-    read_csvs_pitchers(starters = False)[:144].to_csv("./relievers_sharpe.csv")
-    read_csvs_pitchers()[:144].to_csv("./starters_sharpe.csv")
+        get_position(df, position).to_csv(f'{position}.csv')
+    df.to_csv('U.csv')
+    remove_taken(read_csvs_pitchers(starters = False, include_expanded_stats = False)).to_csv("./relievers_sharpe.csv")
+    remove_taken(read_csvs_pitchers(include_expanded_stats = False)).to_csv("./starters_sharpe.csv")
