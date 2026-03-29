@@ -55,7 +55,7 @@ def read_csvs_batters(include_h = True):
     dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
     dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-    return dfs_sharpe#[:400]
+    return dfs_sharpe[:400]
 
 def read_csvs_pitchers(starters = True, include_expanded_stats = True):
     paths = [
@@ -115,7 +115,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-        return dfs_sharpe#[:400]
+        return dfs_sharpe[:400]
     else:
         dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
         dfs = dfs[dfs['G'] - dfs['GS'] > 5]
@@ -159,7 +159,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
-        return dfs_sharpe#[:400]
+        return dfs_sharpe[:400]
 
 def add_positions(df):
     position_path = 'projections/fangraphs-auction-calculator.csv'
