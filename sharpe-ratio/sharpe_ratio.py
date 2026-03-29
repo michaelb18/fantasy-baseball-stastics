@@ -14,10 +14,17 @@ def read_csvs_batters(include_h = True):
             'projections/hitters/zips.csv',
             'projections/hitters/zips_dc.csv'
             ]
+    position_path = 'projections/fangraphs-auction-calculator.csv'
 
     dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
+
+    positions = pd.read_csv(position_path)
+    positions['Name'] = positions['Name'].apply(str.strip)
+
+    #dfs = pd.merge(dfs, positions[['Name', 'POS']], on = 'Name', how = 'left')
     
     dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP", "H", "PA", "BB"] if include_h else ["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
+    #dfs_sharpe['POS'] = dfs['POS']
     adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
     dfs_sharpe_roster = dfs_sharpe[adps != 999]
     dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -100,21 +107,6 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
 
         pd.set_option('display.max_rows', None)
 
-        #print('Top Players By Risk Adjusted Wins')
-        #print(dfs_sharpe.sort_values(by = 'W_sharpe', ascending = False).head(10))
-        
-        #print('Top Players By Risk Adjusted Strikeouts')
-        #print(dfs_sharpe.sort_values(by = 'SO_sharpe', ascending = False).head(10))
-        
-        #print('Top Players By Risk Adjusted WHIP')
-        #print(dfs_sharpe.sort_values(by = 'WHIP_sharpe', ascending = True).head(10))
-        
-        #print('Top Players By Risk Adjusted ERA')
-        #print(dfs_sharpe.sort_values(by = 'ERA_sharpe', ascending = True).head(10))
-
-        #print('Top Risk Adjusted Players')
-        #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
-
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
         return dfs_sharpe
     else:
@@ -156,24 +148,6 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
 
         pd.set_option('display.max_rows', None)
 
-        #print('Top Players By Risk Adjusted Wins')
-        #print(dfs_sharpe.sort_values(by = 'W_sharpe', ascending = False).head(10))
-        
-        #print('Top Players By Risk Adjusted SVHLD')
-        #print(dfs_sharpe.sort_values(by = 'SVHLD_sharpe', ascending = False).head(10))
-        
-        #print('Top Players By Risk Adjusted Strikeouts')
-        #print(dfs_sharpe.sort_values(by = 'SO_sharpe', ascending = False).head(10))
-        
-        #print('Top Players By Risk Adjusted WHIP')
-        #print(dfs_sharpe.sort_values(by = 'WHIP_sharpe', ascending = True).head(10))
-        
-        #print('Top Players By Risk Adjusted ERA')
-        #print(dfs_sharpe.sort_values(by = 'ERA_sharpe', ascending = True).head(10))
-
-        #print('Top Risk Adjusted Players')
-        #print(dfs_sharpe.sort_values(by = 'Total_sharpe', ascending = False).head(240))
-
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
         return dfs_sharpe
 
@@ -181,4 +155,4 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
 if __name__ == '__main__':
     read_csvs_batters(include_h = False).to_csv("./batters_sharpe.csv")
     read_csvs_pitchers(starters = False).to_csv("./relievers_sharpe.csv")
-    read_csvs_pitchers().to_csv("./relievers_sharpe.csv")
+    read_csvs_pitchers().to_csv("./starters_sharpe.csv")

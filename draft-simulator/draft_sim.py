@@ -7,6 +7,10 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
+positions = pd.read_csv('projections/fangraphs-auction-calculator.csv')
+
+positions['Name'] = positions['Name'].apply(str.strip)
+
 import sys
 sys.path.append("../sharpe-ratio")
 from sharpe_ratio import read_csvs_batters, read_csvs_pitchers
@@ -296,11 +300,12 @@ def build_batter_universe(
             bb=_safe_gaussian(bb_mean, bb_std, fallback_bb_std),
             ab=_safe_gaussian(ab_mean, ab_std, fallback_ab_std),
         )
+        print(name, positions[positions['Name'] == name]['POS'].values)
         batter = Batter(
             name=name,
             team=team,
             salary=salary_by_player.get(name, 0.0),
-            eligible_positions=positions_by_player.get(name, []),
+            eligible_positions=positions[positions['Name'] == name]['POS'].values,
             projections=projections,
             projection_system="multi_system",
         )
@@ -397,7 +402,7 @@ def build_pitcher_universe(
             name=name,
             team=team,
             salary=salary_by_player.get(name, 0.0),
-            eligible_positions=positions_by_player.get(name, []),
+            eligible_positions=[],
             projections=projections,
             projection_system="multi_system",
         )
