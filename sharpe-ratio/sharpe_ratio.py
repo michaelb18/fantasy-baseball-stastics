@@ -24,6 +24,7 @@ def read_csvs_batters(include_h = True):
     #dfs = pd.merge(dfs, positions[['Name', 'POS']], on = 'Name', how = 'left')
     
     dfs_sharpe = dfs[["Name", "HR", "R", "RBI", "SB", "OBP", "H", "PA", "BB"] if include_h else ["Name", "HR", "R", "RBI", "SB", "OBP"]].groupby("Name").agg(['mean', 'std']).reset_index()
+    dfs_sharpe['Team'] = np.array([dfs[dfs['Name'] == name]['Team'].values[0] for name in dfs_sharpe['Name']])
     #dfs_sharpe['POS'] = dfs['POS']
     adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
     dfs_sharpe_roster = dfs_sharpe[adps != 999]
@@ -55,6 +56,7 @@ def read_csvs_batters(include_h = True):
     dfs_sharpe.index = np.arange(1, len(dfs_sharpe) + 1)
 
     dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
+    dfs_sharpe['Name'] = dfs_sharpe['Name'] + ' (' + dfs_sharpe['Team'] + ')'
     return dfs_sharpe#[:400]
 
 def read_csvs_pitchers(starters = True, include_expanded_stats = True):
@@ -74,6 +76,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         dfs = dfs[dfs['GS'] > 5]
 
         dfs_sharpe = dfs[["Name", "W", "SO", "WHIP", "ERA", 'ER', 'BB', 'H', 'IP'] if include_expanded_stats else ["Name", "W", "SO", "WHIP", "ERA"]].groupby("Name").agg(['mean', 'std']).reset_index()
+        dfs_sharpe['Team'] = np.array([dfs[dfs['Name'] == name]['Team'].values[0] for name in dfs_sharpe['Name']])
         adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
         dfs_sharpe_roster = dfs_sharpe[adps != 999]
         dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -115,6 +118,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
+        dfs_sharpe['Name'] = dfs_sharpe['Name'] + ' (' + dfs_sharpe['Team'] + ')'
         return dfs_sharpe#[:400]
     else:
         dfs = pd.concat([pd.read_csv(path, delimiter = '\t') for path in paths], ignore_index = True)
@@ -122,6 +126,8 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         dfs["SVHLD"] = dfs['SV'] + dfs['HLD']
 
         dfs_sharpe = dfs[["Name", "W", "SO", "SVHLD", "WHIP", "ERA", 'ER', 'BB', 'H', 'IP'] if include_expanded_stats else ["Name", "W", "SO", "SVHLD", "WHIP", "ERA"]].groupby("Name").agg(['mean', 'std']).reset_index()
+
+        dfs_sharpe['Team'] = np.array([dfs[dfs['Name'] == name]['Team'].values[0] for name in dfs_sharpe['Name']])
         adps = np.array([np.mean(dfs[dfs['Name'] == name]['ADP'].values) for name in dfs_sharpe['Name']])
         dfs_sharpe_roster = dfs_sharpe[adps != 999]
         dfs_sharpe_replacement = dfs_sharpe[adps == 999]
@@ -159,6 +165,7 @@ def read_csvs_pitchers(starters = True, include_expanded_stats = True):
         pd.set_option('display.max_rows', None)
 
         dfs_sharpe['Name'] = dfs_sharpe['Name'].apply(unidecode)
+        dfs_sharpe['Name'] = dfs_sharpe['Name'] + ' (' + dfs_sharpe['Team'] + ')'
         return dfs_sharpe#[:400]
 
 def add_positions(df):
