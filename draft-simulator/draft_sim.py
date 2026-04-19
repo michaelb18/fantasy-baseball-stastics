@@ -223,6 +223,11 @@ class Team:
             svhld=pitching_svhld,
         )
 
+    def write_ini(self):
+        pitcher_string = ','.join([f'{pitcher.name}: {pitcher.salary}' for pitcher in self.pitchers])
+        batter_string = ','.join([f'{batter.name}: {batter.salary}' for batter in self.batters])
+
+        return ','.join([batter_string, pitcher_string])
 
 def _safe_gaussian(mean: float, std: float, fallback_std: float) -> Gaussian:
     """

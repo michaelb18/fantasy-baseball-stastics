@@ -165,6 +165,14 @@ def draft_player_to_team(player_name: str, salary: float, team_name: str) -> str
 
     if not added:
         return f"Could not add {player_name} to {team_name} (roster full or salary cap exceeded)."
+    
+    #save newly drafted player to ini file so we don't lose our progress when the
+    #app inevitably crashes
+    config = configparser.ConfigParser()
+    config.read(TEAMS_INI_PATH)
+    config.set(team.name, 'keepers', team.write_ini())
+    with open(TEAMS_INI_PATH, 'w') as configfile:
+        config.write(configfile)
 
     # Remove from draftable pool so they can't be drafted again.
     if is_batter:
